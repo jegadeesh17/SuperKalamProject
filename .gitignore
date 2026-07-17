@@ -1,0 +1,41 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.local
+
+# Database
+db/*.db
+db/*.sqlite3
+chroma_db/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Data (keep structure, ignore generated)
+data/*.db
+!data/.keep
+!data/seed_data.json
+!data/ingest.py
+
+# Models
+models/*
+!models/.keep
+
+# Logs
+*.log
+
+# Distribution
+dist/
+build/
+*.egg-info/
