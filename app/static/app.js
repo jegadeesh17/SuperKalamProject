@@ -1,12 +1,17 @@
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
-    const modeBtns = document.querySelectorAll('.mode-btn');
+    const startScreen = document.getElementById('start-screen');
+    const startTestBtn = document.getElementById('start-test-btn');
+    const testInterface = document.getElementById('test-interface');
+    
+    const timerDisplay = document.getElementById('timer-display');
+    const qYear = document.getElementById('q-year');
+    const qWordLimit = document.getElementById('q-word-limit');
+    const currentQuestionText = document.getElementById('current-question-text');
+    
     const evaluationForm = document.getElementById('evaluation-form');
-    const answerGroup = document.getElementById('answer-group');
     const answerInput = document.getElementById('answer-input');
-    const questionInput = document.getElementById('question-input');
     const languageSelect = document.getElementById('language-select');
-    const submitBtn = document.getElementById('submit-btn');
     const wordCountVal = document.getElementById('word-count-val');
     
     // State Containers
@@ -16,11 +21,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorMsg = document.getElementById('error-msg');
     const resultsContainer = document.getElementById('results-container');
     const evaluateResult = document.getElementById('evaluate-result');
-    const modelAnswerResult = document.getElementById('model-answer-result');
 
-    let currentMode = 'evaluate';
+    // Timer State
+    let timerInterval = null;
+    let secondsElapsed = 0;
+    let currentQuestion = "";
 
     // ─── Event Listeners ───
+
+    startTestBtn.addEventListener('click', async () => {
+        hide(startScreen);
+        show(testInterface);
+        await fetchRandomQuestion();
+    });
 
     // Word Counter
     answerInput.addEventListener('input', () => {
@@ -28,70 +41,74 @@ document.addEventListener('DOMContentLoaded', () => {
         const words = text ? text.split(/\s+/).length : 0;
         wordCountVal.textContent = words;
         
-        // Color code word count
         if (words < 100 || words > 300) {
-            wordCountVal.style.color = '#ef4444'; // Red if outside range
+            wordCountVal.style.color = 'var(--error)';
         } else {
-            wordCountVal.style.color = '#10b981'; // Green if good
+            wordCountVal.style.color = '#10b981';
         }
-    });
-
-    // Mode Toggler
-    modeBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            modeBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            currentMode = btn.dataset.mode;
-            
-            // Hide results & errors on switch
-            hide(resultsContainer);
-            hide(errorState);
-            
-            if (currentMode === 'evaluate') {
-                show(answerGroup);
-                submitBtn.innerHTML = `<span>Evaluate Answer</span> <i class="fa-solid fa-wand-magic-sparkles"></i>`;
-            } else {
-                hide(answerGroup);
-                submitBtn.innerHTML = `<span>Get Model Answer</span> <i class="fa-solid fa-book-open"></i>`;
-            }
-        });
     });
 
     // Form Submit
     evaluationForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const question = questionInput.value.trim();
+        const answer = answerInput.value.trim();
         const language = languageSelect.value;
         
-        if (!question) {
-            showError('Please enter a question.');
+        if (!answer || answer.split(/\s+/).length < 20) {
+            showError('Please enter a meaningful answer (minimum 20 words).');
             return;
         }
+
+        // Stop Timer
+        clearInterval(timerInterval);
         
         hide(errorState);
         hide(resultsContainer);
+        hide(testInterface);
         show(loadingState);
 
-        if (currentMode === 'evaluate') {
-            const answer = answerInput.value.trim();
-            if (!answer || answer.split(/\s+/).length < 20) {
-                hide(loadingState);
-                showError('Please enter a meaningful answer (minimum 20 words).');
-                return;
-            }
-            loadingText.textContent = 'Analyzing your answer against UPSC standards...';
-            await handleEvaluate(question, answer, language);
-        } else {
-            loadingText.textContent = 'Retrieving and translating model answer...';
-            await handleModelAnswer(question, language);
-        }
+        await handleEvaluate(currentQuestion, answer, language, secondsElapsed);
     });
+
+    // ─── Timer Logic ───
+    function startTimer() {
+        secondsElapsed = 0;
+        updateTimerDisplay();
+        timerInterval = setInterval(() => {
+            secondsElapsed++;
+            updateTimerDisplay();
+        }, 1000);
+    }
+
+    function updateTimerDisplay() {
+        const m = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
+        const s = (secondsElapsed % 60).toString().padStart(2, '0');
+        timerDisplay.textContent = `${m}:${s}`;
+    }
 
     // ─── API Handlers ───
 
-    async function handleEvaluate(question, answer, language) {
+    async function fetchRandomQuestion() {
+        try {
+            currentQuestionText.textContent = "Loading question...";
+            const res = await fetch('/api/random-question');
+            const data = await res.json();
+            
+            if (!res.ok) throw new Error(data.detail || 'Failed to fetch question.');
+            
+            currentQuestion = data.question_text;
+            currentQuestionText.textContent = currentQuestion;
+            qYear.textContent = `UPSC ${data.year || 'PYQ'}`;
+            qWordLimit.textContent = `${data.word_limit} words`;
+
+            startTimer(); // Start timer once question is loaded
+        } catch (err) {
+            showError("Could not load a random question. " + err.message);
+        }
+    }
+
+    async function handleEvaluate(question, answer, language, timeTaken) {
         try {
             const res = await fetch('/api/evaluate', {
                 method: 'POST',
@@ -99,7 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({
                     question_text: question,
                     answer_text: answer,
-                    language: language
+                    language: language,
+                    time_taken_seconds: timeTaken
                 })
             });
 
@@ -117,31 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function handleModelAnswer(question, language) {
-        try {
-            const res = await fetch('/api/model-answer', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    question_text: question,
-                    language: language
-                })
-            });
-
-            const data = await res.json();
-            
-            if (!res.ok) {
-                throw new Error(data.detail || 'Failed to retrieve answer.');
-            }
-
-            renderModelAnswerResults(data);
-        } catch (err) {
-            showError(err.message);
-        } finally {
-            hide(loadingState);
-        }
-    }
-
     // ─── Renderers ───
 
     function renderEvaluateResults(data) {
@@ -152,20 +145,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const score = data.overall_score;
         valText.textContent = score.toFixed(1);
         
-        // Calculate stroke dasharray (circumference is ~100 based on SVG path)
-        // Format: "dash_length, gap_length" -> e.g. 70, 100 for 70%
         const percentage = (score / 10) * 100;
         
-        // Reset animation
         circle.setAttribute('stroke-dasharray', `0, 100`);
-        circle.className.baseVal = 'circle'; // Reset class
+        circle.className.baseVal = 'circle';
         
-        // Set color class
-        if (score < 4) circle.classList.add('score-low');
-        else if (score < 7) circle.classList.add('score-med');
-        else circle.classList.add('score-high');
+        if (score < 4) circle.style.stroke = 'var(--error)';
+        else if (score < 7) circle.style.stroke = '#f59e0b';
+        else circle.style.stroke = '#10b981';
 
-        // Trigger animation
         setTimeout(() => {
             circle.setAttribute('stroke-dasharray', `${percentage}, 100`);
         }, 100);
@@ -175,10 +163,9 @@ document.addEventListener('DOMContentLoaded', () => {
         rubricContainer.innerHTML = '';
         
         for (const [criterion, critScore] of Object.entries(data.scores)) {
-            const critPercentage = (critScore / 10) * 100;
-            let colorHex = '#10b981'; // Green
-            if (critScore < 4) colorHex = '#ef4444'; // Red
-            else if (critScore < 7) colorHex = '#f59e0b'; // Yellow
+            let colorHex = '#10b981';
+            if (critScore < 4) colorHex = 'var(--error)';
+            else if (critScore < 7) colorHex = '#f59e0b';
 
             const niceName = criterion.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
@@ -186,19 +173,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="rubric-item">
                     <div class="rubric-header">
                         <span>${niceName}</span>
-                        <span>${critScore}/10</span>
+                        <span class="val">${critScore}/10</span>
                     </div>
-                    <div class="rubric-bar-bg">
-                        <div class="rubric-bar-fill" style="width: 0%; background-color: ${colorHex}"></div>
+                    <div class="bar-bg">
+                        <div class="bar-fill" style="width: 0%; background-color: ${colorHex}"></div>
                     </div>
                 </div>
             `;
             rubricContainer.insertAdjacentHTML('beforeend', html);
         }
 
-        // Animate rubric bars
         setTimeout(() => {
-            const fills = rubricContainer.querySelectorAll('.rubric-bar-fill');
+            const fills = rubricContainer.querySelectorAll('.bar-fill');
             const scores = Object.values(data.scores);
             fills.forEach((fill, index) => {
                 fill.style.width = `${(scores[index] / 10) * 100}%`;
@@ -208,33 +194,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Feedback
         document.getElementById('mentor-feedback').textContent = data.feedback;
 
-        hide(modelAnswerResult);
         show(evaluateResult);
         show(resultsContainer);
         
-        // Scroll to results
-        resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    function renderModelAnswerResults(data) {
-        document.getElementById('ma-topic').textContent = data.topic;
-        document.getElementById('ma-year').textContent = `UPSC ${data.year}`;
-        document.getElementById('ma-matched-q').textContent = data.matched_question;
-        document.getElementById('ma-content').textContent = data.model_answer;
-        
-        const kpContainer = document.getElementById('ma-key-points');
-        kpContainer.innerHTML = '';
-        data.key_points.forEach(kp => {
-            const li = document.createElement('li');
-            li.textContent = kp;
-            kpContainer.appendChild(li);
-        });
-
-        hide(evaluateResult);
-        show(modelAnswerResult);
-        show(resultsContainer);
-
-        // Scroll to results
         resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 

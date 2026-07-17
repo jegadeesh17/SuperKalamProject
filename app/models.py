@@ -28,6 +28,10 @@ class EvaluateRequest(BaseModel):
         pattern="^(en|hi|ta)$",
         description="Language for feedback: 'en' (English), 'hi' (Hindi), 'ta' (Tamil).",
     )
+    time_taken_seconds: Optional[int] = Field(
+        default=None,
+        description="Time taken by the student to answer the question, in seconds.",
+    )
 
 
 class ModelAnswerRequest(BaseModel):
@@ -108,4 +112,5 @@ class AttemptResponse(BaseModel):
     scores: dict
     overall_score: float
     feedback_text: str
+    time_taken_seconds: Optional[int]
     created_at: str

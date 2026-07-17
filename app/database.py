@@ -79,6 +79,7 @@ class Attempt(Base):
     scores_json = Column(Text, nullable=False)         # Per-criterion scores
     overall_score = Column(Float, nullable=False)
     feedback_text = Column(Text, nullable=False)       # In requested language
+    time_taken_seconds = Column(Integer, nullable=True) # Mock test time taken
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships

@@ -21,6 +21,7 @@ async def run_evaluate_pipeline(
     answer_text: str,
     language: str,
     db: Session,
+    time_taken_seconds: int = None,
 ) -> dict:
     """
     Full evaluate pipeline: Retrieval → Evaluator → Feedback → Persist
@@ -64,6 +65,7 @@ async def run_evaluate_pipeline(
         model_answer=model_answer,
         rubric_criteria=rubric_criteria,
         word_limit=word_limit,
+        time_taken_seconds=time_taken_seconds,
     )
 
     scores = evaluation["scores"]
@@ -95,6 +97,7 @@ async def run_evaluate_pipeline(
         scores_json=json.dumps(scores),
         overall_score=overall_score,
         feedback_text=feedback,
+        time_taken_seconds=time_taken_seconds,
         created_at=datetime.utcnow(),
     )
     db.add(attempt)
@@ -109,6 +112,7 @@ async def run_evaluate_pipeline(
         "overall_score": overall_score,
         "feedback": feedback,
         "language": language,
+        "time_taken_seconds": time_taken_seconds,
     }
 
 

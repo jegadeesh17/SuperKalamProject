@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SuperKalam — UPSC Mains Answer Evaluator</title>
+    <title>SuperKalam — UPSC Mains Mock Test</title>
     
     <!-- Modern Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,9 +16,7 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Background Elements for Premium Look -->
-    <div class="bg-gradient-1"></div>
-    <div class="bg-gradient-2"></div>
+    <div class="bg-gradient-light"></div>
 
     <div class="container">
         <header>
@@ -26,31 +24,38 @@
                 <i class="fa-solid fa-pen-nib"></i>
                 <h1>SuperKalam</h1>
             </div>
-            <p class="subtitle">Agentic UPSC Mains Answer Evaluator</p>
+            <p class="subtitle">Your 24/7 Personal Mentor for UPSC Preparation</p>
         </header>
 
         <main>
-            <!-- Mode Toggle -->
-            <div class="mode-toggle">
-                <button class="mode-btn active" data-mode="evaluate">
-                    <i class="fa-solid fa-check-double"></i> Evaluate My Answer
-                </button>
-                <button class="mode-btn" data-mode="model-answer">
-                    <i class="fa-solid fa-book-open"></i> Show Model Answer
+            <!-- Start Screen -->
+            <div id="start-screen" class="center-content glass-panel">
+                <h2>Ready for your Mock Test?</h2>
+                <p>You will receive a random UPSC PYQ. Answer within the time limit.</p>
+                <button id="start-test-btn" class="primary-btn large-btn mt-2">
+                    Start Now <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </div>
 
-            <div class="glass-panel">
-                <form id="evaluation-form">
-                    
-                    <div class="form-group">
-                        <label for="question-input">UPSC Mains Question</label>
-                        <textarea id="question-input" rows="3" placeholder="Paste a UPSC Mains question here... (e.g. 'Discuss the role of women's self-help groups...')"></textarea>
+            <!-- Test Interface -->
+            <div id="test-interface" class="hidden glass-panel">
+                <div class="test-header">
+                    <div class="timer" id="timer-display">00:00</div>
+                    <div class="badges">
+                        <span class="badge" id="q-year"></span>
+                        <span class="badge" id="q-word-limit"></span>
                     </div>
+                </div>
+                
+                <div class="question-box">
+                    <h3>Question:</h3>
+                    <p id="current-question-text">Loading question...</p>
+                </div>
 
+                <form id="evaluation-form" class="mt-2">
                     <div class="form-group" id="answer-group">
                         <label for="answer-input">Your Answer</label>
-                        <textarea id="answer-input" rows="8" placeholder="Type your 150-250 word answer here..."></textarea>
+                        <textarea id="answer-input" rows="10" placeholder="Type your answer here..."></textarea>
                         <div class="word-count"><span id="word-count-val">0</span> words</div>
                     </div>
 
@@ -68,33 +73,29 @@
                         </div>
                         <div class="form-group half action-btn-group">
                             <button type="submit" id="submit-btn" class="primary-btn">
-                                <span>Evaluate Answer</span>
-                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                <span>Submit Answer</span>
+                                <i class="fa-solid fa-paper-plane"></i>
                             </button>
                         </div>
                     </div>
                 </form>
+            </div>
 
-                <!-- Loading State -->
-                <div id="loading-state" class="hidden">
-                    <div class="spinner"></div>
-                    <p id="loading-text">Analyzing your answer against UPSC standards...</p>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar"></div>
-                    </div>
-                </div>
+            <!-- Loading State -->
+            <div id="loading-state" class="hidden glass-panel">
+                <div class="spinner"></div>
+                <p id="loading-text">Analyzing your answer against UPSC standards...</p>
+            </div>
 
-                <!-- Error State -->
-                <div id="error-state" class="hidden alert warning">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                    <p id="error-msg">An error occurred.</p>
-                </div>
+            <!-- Error State -->
+            <div id="error-state" class="hidden alert warning glass-panel">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <p id="error-msg">An error occurred.</p>
             </div>
 
             <!-- Results Container -->
             <div id="results-container" class="hidden">
-                <!-- Evaluation Results -->
-                <div id="evaluate-result" class="hidden">
+                <div id="evaluate-result" class="glass-panel">
                     <div class="score-cards">
                         <div class="score-card primary-score">
                             <h3>Overall Score</h3>
@@ -125,43 +126,17 @@
                         </div>
                     </div>
 
-                    <div class="glass-panel feedback-panel mt-2">
+                    <div class="feedback-panel mt-2">
                         <h3><i class="fa-solid fa-user-graduate"></i> Mentor Feedback</h3>
                         <div id="mentor-feedback" class="feedback-content">
                             <!-- Populated by JS -->
                         </div>
                     </div>
                 </div>
-
-                <!-- Model Answer Results -->
-                <div id="model-answer-result" class="hidden glass-panel mt-2">
-                    <div class="result-header">
-                        <h3><i class="fa-solid fa-file-contract"></i> Model Answer</h3>
-                        <div class="badges">
-                            <span class="badge" id="ma-topic">Topic</span>
-                            <span class="badge" id="ma-year">Year</span>
-                        </div>
-                    </div>
-                    <div class="matched-q">
-                        <strong>Matched PYQ:</strong> <span id="ma-matched-q">...</span>
-                    </div>
-                    <div class="model-content" id="ma-content">
-                        <!-- Populated by JS -->
-                    </div>
-                    <div class="key-points-section">
-                        <h4>Key Points to Cover</h4>
-                        <ul id="ma-key-points">
-                            <!-- Populated by JS -->
-                        </ul>
-                    </div>
-                </div>
             </div>
             
         </main>
         
-        <footer>
-            <p>SuperKalam Agentic Evaluator Demo</p>
-        </footer>
     </div>
 
     <script src="app.js"></script>

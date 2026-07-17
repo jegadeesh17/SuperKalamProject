@@ -36,6 +36,7 @@ def _build_evaluation_prompt(
     model_answer: str,
     rubric_criteria: list[dict],
     word_limit: int,
+    time_taken_seconds: int = None,
 ) -> str:
     """Build the user prompt for the evaluator LLM call."""
     criteria_text = "\n".join(
@@ -57,6 +58,7 @@ RUBRIC CRITERIA:
 
 WORD LIMIT: {word_limit} words
 ACTUAL WORD COUNT: {len(submitted_answer.split())} words
+TIME TAKEN: {time_taken_seconds if time_taken_seconds else 'Unknown'} seconds (Average Expected Time: 540 seconds)
 
 Score the student's answer against EACH criterion (0-10). Calculate the weighted overall score. Write 2-3 sentences of evaluator notes for the feedback agent.
 
@@ -69,6 +71,7 @@ async def evaluate(
     model_answer: str,
     rubric_criteria: list[dict],
     word_limit: int = 250,
+    time_taken_seconds: int = None,
     retry: bool = True,
 ) -> dict:
     """
@@ -79,7 +82,7 @@ async def evaluate(
     Raises: ValueError on parse failure after retry
     """
     user_prompt = _build_evaluation_prompt(
-        submitted_answer, question_text, model_answer, rubric_criteria, word_limit
+        submitted_answer, question_text, model_answer, rubric_criteria, word_limit, time_taken_seconds
     )
 
     payload = {

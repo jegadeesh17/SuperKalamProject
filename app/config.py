@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 # Load .env from project root
 PROJECT_ROOT = Path(__file__).parent.parent
-load_dotenv(PROJECT_ROOT / ".env")
+load_dotenv(PROJECT_ROOT / ".env", override=True)
 
 
 class Settings:
@@ -42,10 +42,11 @@ class Settings:
 
     # Rubric defaults (weights must sum to 1.0)
     DEFAULT_RUBRIC_WEIGHTS: dict = {
-        "coverage": 0.40,
+        "coverage": 0.35,
         "structure": 0.25,
         "examples": 0.20,
-        "word_limit_adherence": 0.15,
+        "word_limit_adherence": 0.10,
+        "time_management": 0.10,
     }
 
     # API

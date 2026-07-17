@@ -6,12 +6,24 @@ Student submits question + answer → get scores + feedback
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.database import get_db
+from app.database import get_db, PYQ
 from app.models import EvaluateRequest, EvaluateResponse
 from agents.orchestrator import run_evaluate_pipeline
+from sqlalchemy.sql.expression import func
 
 router = APIRouter()
 
+@router.get("/random-question")
+async def get_random_question(db: Session = Depends(get_db)):
+    """Fetch a random PYQ for the mock test."""
+    question = db.query(PYQ).order_by(func.random()).first()
+    if not question:
+        raise HTTPException(status_code=404, detail="No questions found in database.")
+    return {
+        "question_text": question.question_text,
+        "word_limit": question.word_limit,
+        "year": question.year,
+    }
 
 @router.post(
     "/evaluate",
@@ -32,6 +44,7 @@ async def evaluate_answer(
             question_text=request.question_text,
             answer_text=request.answer_text,
             language=request.language,
+            time_taken_seconds=request.time_taken_seconds,
             db=db,
         )
         return EvaluateResponse(**result)
