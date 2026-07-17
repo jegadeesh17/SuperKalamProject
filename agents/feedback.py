@@ -123,6 +123,8 @@ Return ONLY the translated text, no commentary."""
             json=payload,
             headers=headers,
         )
+        if response.status_code == 429:
+            return "[MOCK] API Rate Limit Exceeded (429). The system is temporarily unable to generate personalized LLM feedback. Please try again later when the rate limit resets."
         response.raise_for_status()
 
     result = response.json()

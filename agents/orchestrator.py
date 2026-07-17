@@ -31,14 +31,19 @@ async def run_evaluate_pipeline(
     retrieval_result = retrieve(question_text)
 
     if "error" in retrieval_result:
-        raise ValueError(retrieval_result["error"])
-
-    pyq_id = retrieval_result["pyq_id"]
-    topic_id = retrieval_result["topic_id"]
-    matched_question = retrieval_result["question_text"]
-    model_answer = retrieval_result["model_answer"]
-    word_limit = retrieval_result["word_limit"]
-    year = retrieval_result["year"]
+        pyq_id = "unknown"
+        topic_id = "general"
+        matched_question = question_text
+        model_answer = "No official model answer available. Evaluate based on general UPSC knowledge."
+        word_limit = 250
+        year = None
+    else:
+        pyq_id = retrieval_result["pyq_id"]
+        topic_id = retrieval_result["topic_id"]
+        matched_question = retrieval_result["question_text"]
+        model_answer = retrieval_result["model_answer"]
+        word_limit = retrieval_result["word_limit"]
+        year = retrieval_result["year"]
 
     # ── Step 2: Get rubric for this topic ───────────────────────
     rubric = db.query(Rubric).filter(Rubric.topic_id == topic_id).first()

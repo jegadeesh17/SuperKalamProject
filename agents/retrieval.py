@@ -57,6 +57,9 @@ def retrieve(question_text: str, top_k: int = 1) -> dict:
     distance = results["distances"][0][best_match_idx]
     similarity = 1.0 - distance  # cosine distance → similarity
 
+    if similarity < 0.50:
+        return {"error": "Question is too different from known PYQs. Please try a different question."}
+
     return {
         "pyq_id": results["ids"][0][best_match_idx],
         "topic_id": metadata.get("topic_id", ""),

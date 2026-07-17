@@ -24,10 +24,10 @@ class Settings:
     # Database
     DATABASE_URL: str = os.getenv("DATABASE_URL", f"sqlite:///{PROJECT_ROOT / 'db' / 'superkalam.db'}")
 
-    # OpenRouter LLM
-    OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
-    OPENROUTER_MODEL: str = os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3.1-8b-instruct:free")
-    OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1/chat/completions"
+    # Groq LLM (Replacing OpenRouter)
+    OPENROUTER_API_KEY: str = os.getenv("GROQ_API_KEY", os.getenv("OPENROUTER_API_KEY", ""))
+    OPENROUTER_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    OPENROUTER_BASE_URL: str = "https://api.groq.com/openai/v1/chat/completions"
 
     # Retrieval
     EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
