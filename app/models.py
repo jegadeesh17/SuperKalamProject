@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 # ─── Request Schemas ──────────────────────────────────────────
 
 class EvaluateRequest(BaseModel):
-    """POST /evaluate — student submits question + answer for evaluation."""
+    """POST /evaluate — student submits an answer for a mock test question."""
     question_text: str = Field(
         ...,
         min_length=10,

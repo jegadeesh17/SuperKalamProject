@@ -1,14 +1,14 @@
-# SuperKalam — Agentic UPSC Mains Evaluator
+# SuperKalam — Agentic UPSC Mock Test Platform
 
-SuperKalam is a multi-lingual, agentic AI evaluator for UPSC Mains answer writing. It uses a chain of LLM agents and RAG (ChromaDB) to accurately score student answers against UPSC rubrics and provide mentor-style feedback in English, Hindi, and Tamil.
+SuperKalam is a multi-lingual, agentic AI mock test platform for UPSC Mains answer writing. It provides students with timed mock tests using random Previous Year Questions (PYQs), and uses a chain of LLM agents and RAG (ChromaDB) to accurately score student answers against UPSC rubrics and provide mentor-style feedback in English, Hindi, and Tamil.
 
 ## Features
 
-1. **Auto-Matching (Retrieval Agent)**: Paste any UPSC question. The system uses ChromaDB semantic search to match it to a known PYQ (Previous Year Question) and retrieve the official model answer and rubric.
+1. **Mock Test Generation**: Take timed mock tests with random UPSC PYQs assigned from a curated database. (Fallback: The system can also accept any pasted UPSC question and uses ChromaDB semantic search to auto-match it to a known PYQ).
 2. **Strict Evaluation (Evaluator Agent)**: An LLM agent scores the answer (0-10) across four dimensions (Coverage, Structure, Examples, Word Limit) and enforces a strict JSON output contract.
 3. **Localized Mentorship (Feedback Agent)**: Generates encouraging, actionable feedback natively in English, Hindi, or Tamil.
 4. **Model Answer Mode**: Students can simply request the model answer for any PYQ.
-5. **Modern Glassmorphic UI**: A responsive, premium web interface.
+5. **Modern Glassmorphic UI**: A responsive, premium web interface optimized for taking timed mock tests.
 
 ## Tech Stack
 

@@ -28,11 +28,12 @@ async def get_random_question(db: Session = Depends(get_db)):
 @router.post(
     "/evaluate",
     response_model=EvaluateResponse,
-    summary="Evaluate a student's answer",
+    summary="Evaluate a student's mock test answer",
     description=(
-        "Submit a UPSC Mains question and your written answer. "
-        "The system auto-matches to the closest PYQ, scores your answer "
-        "against the rubric, and returns mentor-style feedback in your chosen language."
+        "Submit a UPSC Mains mock test question and your written answer. "
+        "The system scores your answer against the official rubric, "
+        "and returns mentor-style feedback in your chosen language. "
+        "(Fallback: if a non-mock question is submitted, it auto-matches to the closest PYQ.)"
     ),
 )
 async def evaluate_answer(
