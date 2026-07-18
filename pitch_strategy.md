@@ -2,7 +2,7 @@
 
 ## 1. Problem Statement
 
-"Hi everyone, I'm Jegadeesh, and today I'm presenting SuperKalam. During my research into UPSC preparation, I noticed a glaring problem: aspirants desperately need daily answer writing practice to succeed in the Mains exam, but getting consistent, high-quality human evaluation is incredibly expensive, slow, and often biased. I built SuperKalam to solve this. It's an AI-powered Mock Test Platform that acts as a 24/7 personal mentor. It provides timed mock tests, strictly evaluates answers using official UPSC rubrics, and most importantly, offers encouraging, localized feedback in English, Hindi, and Tamil."
+"Hi everyone, I'm Jegadeesh, and today I'm presenting SuperKalam. During my research into UPSC preparation, I noticed a glaring problem: aspirants desperately need daily answer writing practice to succeed in the Mains exam, but getting consistent, high-quality human evaluation is incredibly expensive, slow, and often biased. Often, students prepare in their comfortable time, either late at night or early in the morning, so a human evaluation at that time wouldn't be possible. I built SuperKalam to solve this. It's an AI-powered Mock Test Platform that acts as a 24/7 personal mentor. It provides timed mock tests, strictly evaluates answers using official UPSC rubrics, and most importantly, offers encouraging, localized feedback in English, Hindi, and Tamil."
 
 ## 2. UI Showcase & Explanation
 
