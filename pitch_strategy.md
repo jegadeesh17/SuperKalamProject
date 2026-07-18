@@ -1,53 +1,39 @@
-# SuperKalam: Loom Video Pitch Strategy & Workflow Guide
+# SuperKalam: Loom Video Pitch Script
 
-This document is designed to help you prepare for your Loom video submission. It contains the core pitch strategy, a step-by-step walkthrough of the app's workflow, and key technical highlights to mention.
+## 1. Problem Statement
 
----
+"Hi everyone, I'm Jegadeesh, and today I'm presenting SuperKalam. During my research into UPSC preparation, I noticed a glaring problem: aspirants desperately need daily answer writing practice to succeed in the Mains exam, but getting consistent, high-quality human evaluation is incredibly expensive, slow, and often biased. I built SuperKalam to solve this. It's an AI-powered Mock Test Platform that acts as a 24/7 personal mentor. It provides timed mock tests, strictly evaluates answers using official UPSC rubrics, and most importantly, offers encouraging, localized feedback in English, Hindi, and Tamil."
 
-## 1. The Core Pitch (The "Why")
+## 2. UI Showcase & Explanation
 
-**The Problem:** UPSC aspirants need constant answer writing practice, but getting human evaluation is expensive, slow, and often biased. 
-**The Solution:** SuperKalam is an AI-powered Mock Test Platform that acts as a 24/7 personal mentor. It provides timed mock tests, strictly evaluates answers using UPSC rubrics, and offers encouraging, localized feedback in multiple Indian languages (English, Hindi, Tamil).
+"Let's dive into the platform. When you land on SuperKalam, you'll immediately notice the modern, 'Glassmorphic' UI I designed. I wanted the interface to feel premium and distraction-free so students can focus entirely on the exam. 
 
-## 2. Complete Workflow (What to show in the video)
+When I click 'Start Now', the platform doesn't just ask me to paste a question—it generates a true mock test environment by pulling a random Previous Year Question from the database. 
 
-Follow these steps when recording your screen to demonstrate all functionalities smoothly.
+Here in the test interface, you can see the live timer to simulate real exam pressure, the assigned question with its year and word limit, and a dynamic word counter. The platform forces a minimum word count so students can't game the system with one-liners. 
 
-### Step A: The Landing & Mock Test Initiation
-1. **Show the Start Screen:** Open `http://127.0.0.1:8000/ui/`. Point out the modern, premium "Glassmorphic" UI.
-2. **Action:** Click "Start Now". 
-3. **Explain:** Emphasize that the platform acts as a Mock Test environment. It pulls a *random* Previous Year Question (PYQ) from the database to test the student under surprise conditions.
+Once I've written my answer, I can select my preferred language—let's say Hindi—and hit 'Submit'."
 
-### Step B: The Test Environment
-1. **Show the Interface:** Point out the live timer, the assigned question, the year badge, and the word limit.
-2. **Action:** Start typing a mock answer in the text area (or paste a pre-written one to save time in the video).
-3. **Explain:** Show how the word counter updates dynamically. Mention that the app requires a minimum number of words (20 words) to ensure students are actually writing meaningful answers.
+## 3. Deep Explanation of the Tech Stack & Why It Was Chosen
 
-### Step C: Submission & Multilingual Feedback
-1. **Action:** Select a feedback language (e.g., Hindi or Tamil) to show off the localization feature, then click "Submit Answer".
-2. **Explain:** While the loading spinner is active, explain the **Agentic Pipeline**:
-   - The **Retrieval Agent** (ChromaDB) fetches the exact model answer and rubric.
-   - The **Evaluator Agent** (Llama-3) strictly scores the answer based on Coverage, Structure, Examples, and Word Limit, enforcing a JSON contract.
-   - The **Feedback Agent** translates and formats the feedback into the chosen language as a supportive mentor.
+"While the answer is being analyzed, let me explain the tech stack powering this under the hood. 
 
-### Step D: The Results & Evaluation
-1. **Show the Score:** The UI smoothly animates the overall score (out of 10) and rubric breakdowns.
-2. **Show the Feedback:** Scroll down to the Mentor Feedback section. Highlight how the feedback is actionable and encouraging, completely localized into the language you selected.
+For the **Backend**, I chose **FastAPI** because of its incredible speed, async capabilities, and clean routing structure. This allows my API to handle long-running LLM inferences without blocking the server.
 
----
+For the **Database layer**, I'm actually using two systems: 
+1. **SQLite with SQLAlchemy** handles structured data like topics, rubrics, and the student's attempt history. It's lightweight and perfect for this scale.
+2. **ChromaDB**, a vector database, is used for our **RAG (Retrieval-Augmented Generation)** architecture. I chose ChromaDB because it runs locally and allows the system to embed any question and instantly find the closest matching PYQ and its official model answer.
 
-## 3. Key Technical Highlights to Mention
+For the **LLM**, I integrated the **OpenRouter API** using `meta-llama/llama-3.1-8b-instruct`. I chose this specific Llama-3 model because it's highly capable of adhering to strict system prompts, which is crucial for the complex agentic pipeline I built."
 
-If you have extra time or want to impress the evaluators, drop these keywords during your explanation:
-- **RAG (Retrieval-Augmented Generation)**: Mention you use ChromaDB to retrieve the correct model answer and rubric dynamically.
-- **Agentic Pipeline**: It’s not just a single prompt. It's a chain of specialized agents (Retrieval -> Evaluator -> Feedback) that handle distinct parts of the logic.
-- **Structured LLM Output**: The evaluator agent is forced to output a strict JSON contract, ensuring the frontend always gets parseable score metrics.
-- **FastAPI & SQLite**: Mention the clean backend architecture that separates routes, agents, and database operations.
+## 4. Run-Through of the Stack (The Agentic Pipeline)
 
-## 4. Practice Checklist
-- [ ] Ensure the app is running (`uvicorn app.main:app --reload`).
-- [ ] Have a sample answer ready to copy-paste to keep the video concise.
-- [ ] Practice speaking while the "Analyzing..." spinner is showing so there's no dead air.
-- [ ] Test the language dropdown beforehand to ensure you know what to expect.
+"What makes SuperKalam powerful is that it isn't just a simple wrapper around a single LLM prompt. It uses an **Agentic Pipeline**—a chain of specialized AI agents working together:
 
-Good luck with your Loom submission! You have a great project that solves a real-world problem beautifully.
+1. **The Retrieval Agent:** First, this agent uses ChromaDB to fetch the exact model answer and the official UPSC rubric for the assigned topic.
+2. **The Evaluator Agent:** Next, this agent takes the student's answer, the model answer, and the rubric. I've designed it to strictly score the answer across four dimensions—Coverage, Structure, Examples, and Word Limit. Crucially, I enforce a strict JSON output contract so the frontend receives reliable, parseable numbers every time.
+3. **The Feedback Agent:** Finally, this agent takes the raw evaluator notes and translates them into a supportive, mentor-like tone in the student's chosen language.
+
+And here are the results on the UI! As you can see, the overall score animates beautifully, we get a detailed rubric breakdown, and down here, we have actionable, encouraging mentor feedback completely localized into Hindi. 
+
+Thank you for watching, and I'm excited to hear your feedback on SuperKalam!"
