@@ -43,6 +43,16 @@ os.makedirs(static_dir, exist_ok=True)
 # Mount static files for the web UI
 app.mount("/ui", StaticFiles(directory=static_dir, html=True), name="static")
 
+@app.get("/health", tags=["Health"])
+def health() -> dict:
+    return {
+        "status": "healthy",
+        "service": "SuperKalam Answer Evaluator",
+        "version": settings.APP_VERSION,
+        "database": os.path.exists(str(settings.DB_DIR / "superkalam.db")),
+    }
+
+
 @app.get("/", include_in_schema=False)
 async def root():
     """Redirect root to the UI."""

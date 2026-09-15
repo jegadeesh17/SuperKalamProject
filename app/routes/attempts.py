@@ -66,6 +66,7 @@ async def list_attempts(
             scores=json.loads(a.scores_json),
             overall_score=a.overall_score,
             feedback_text=a.feedback_text,
+            time_taken_seconds=a.time_taken_seconds,
             created_at=a.created_at.isoformat() if a.created_at else "",
         )
         for a in attempts

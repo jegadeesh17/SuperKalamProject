@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  superkalam-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: superkalam-api
+    restart: unless-stopped
+    ports:
+      - "8003:8003"
+    environment:
+      - PORT=8003
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL:-llama-3.3-70b-versatile}
+      - DATABASE_URL=sqlite:////app/db/superkalam.db
+    volumes:
+      - kalam-data:/app/db
+      - kalam-chroma:/app/chroma_db
+
+volumes:
+  kalam-data:
+  kalam-chroma:

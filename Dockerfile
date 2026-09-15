@@ -1,0 +1,46 @@
+# Multi-Stage Production Dockerfile for SuperKalam UPSC Mains Evaluator
+
+# Stage 1: Build virtual environment and install wheels
+FROM python:3.11-slim AS builder
+
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential curl && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt ./
+RUN python -m venv /opt/venv && \
+    /opt/venv/bin/pip install --no-cache-dir --upgrade pip && \
+    /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# Stage 2: Minimal hardened runtime image
+FROM python:3.11-slim AS runner
+
+WORKDIR /app
+ENV PATH="/opt/venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PORT=8003
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
+# Non-root service account
+RUN groupadd -g 10001 appgroup && \
+    useradd -u 10001 -g appgroup -s /bin/bash -m appuser
+
+COPY --from=builder /opt/venv /opt/venv
+
+COPY --chown=appuser:appgroup agents/ agents/
+COPY --chown=appuser:appgroup app/ app/
+COPY --chown=appuser:appgroup configs/ configs/
+COPY --chown=appuser:appgroup data/ data/
+COPY --chown=appuser:appgroup scripts/ scripts/
+
+RUN mkdir -p db chroma_db reports && chown -R appuser:appgroup /app
+
+USER appuser
+
+EXPOSE 8003
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:${PORT}/health || exit 1
+
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]

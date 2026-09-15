@@ -112,5 +112,5 @@ class AttemptResponse(BaseModel):
     scores: dict
     overall_score: float
     feedback_text: str
-    time_taken_seconds: Optional[int]
+    time_taken_seconds: Optional[int] = None
     created_at: str

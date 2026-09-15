@@ -6,7 +6,7 @@ Retrieval → Translation (for model-answer mode)
 
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
@@ -98,7 +98,7 @@ async def run_evaluate_pipeline(
         overall_score=overall_score,
         feedback_text=feedback,
         time_taken_seconds=time_taken_seconds,
-        created_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
     )
     db.add(attempt)
     db.commit()
