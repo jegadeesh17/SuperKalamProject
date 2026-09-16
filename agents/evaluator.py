@@ -5,8 +5,10 @@ Scores a student's answer against the rubric using strict JSON output.
 
 import json
 import httpx
+from pydantic import ValidationError
 
 from app.config import settings
+from app.models import EvaluatorOutput
 
 
 EVALUATOR_SYSTEM_PROMPT = """You are a UPSC Mains answer evaluator. You evaluate student answers with the precision and fairness of an experienced UPSC examiner.
@@ -175,22 +177,30 @@ async def evaluate(
 
 
 def _validate_evaluation(parsed: dict, rubric_criteria: list[dict]) -> None:
-    """Validate the evaluator's JSON output against expected schema."""
-    if "scores" not in parsed:
-        raise ValueError("Missing 'scores' in evaluator output")
-    if "overall_score" not in parsed:
-        raise ValueError("Missing 'overall_score' in evaluator output")
-    if "notes" not in parsed:
-        raise ValueError("Missing 'notes' in evaluator output")
+    """Validate the evaluator's JSON output against the EvaluatorOutput schema.
 
-    # Ensure all criteria are scored
+    Required-key presence and per-score 0-10 bounds are enforced by the
+    `EvaluatorOutput` Pydantic model (`app/models.py`). The rubric-criteria
+    subset check below stays a manual check afterwards: which criteria are
+    *required* depends on the active per-topic rubric supplied by the
+    caller, so it can't be expressed as a static Pydantic field.
+    """
+    try:
+        validated = EvaluatorOutput.model_validate(parsed)
+    except ValidationError as e:
+        missing_keys = {
+            err["loc"][0]
+            for err in e.errors()
+            if err["type"] == "missing" and err["loc"]
+        }
+        for key in ("scores", "overall_score", "notes"):
+            if key in missing_keys:
+                raise ValueError(f"Missing '{key}' in evaluator output") from e
+        raise ValueError(str(e)) from e
+
+    # Ensure all criteria required by the active rubric are scored
     expected_criteria = {c["name"] for c in rubric_criteria}
-    actual_criteria = set(parsed["scores"].keys())
+    actual_criteria = set(validated.scores.keys())
     if not expected_criteria.issubset(actual_criteria):
         missing = expected_criteria - actual_criteria
         raise ValueError(f"Missing scores for criteria: {missing}")
-
-    # Ensure scores are in range
-    for name, score in parsed["scores"].items():
-        if not (0 <= score <= 10):
-            raise ValueError(f"Score for '{name}' is {score}, must be 0-10")

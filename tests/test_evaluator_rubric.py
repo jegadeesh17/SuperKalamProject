@@ -57,6 +57,30 @@ def test_validate_evaluation_score_out_of_bounds(sample_rubric):
         _validate_evaluation(invalid_score_output, sample_rubric)
 
 
+def test_validate_evaluation_overall_score_out_of_bounds(sample_rubric):
+    invalid_overall_output = {
+        "scores": {
+            "Content & Accuracy": 8,
+            "Structure & Flow": 7,
+            "Examples": 9
+        },
+        "overall_score": 15.0,  # Invalid: > 10
+        "notes": "Out of range overall score."
+    }
+    with pytest.raises(ValueError, match="less than or equal to 10"):
+        _validate_evaluation(invalid_overall_output, sample_rubric)
+
+
+def test_validate_evaluation_scores_not_a_dict(sample_rubric):
+    non_dict_scores_output = {
+        "scores": ["Content & Accuracy", "Structure & Flow", "Examples"],  # Invalid: not a dict
+        "overall_score": 8.0,
+        "notes": "Scores provided as a list instead of a mapping."
+    }
+    with pytest.raises(ValueError, match="valid dictionary"):
+        _validate_evaluation(non_dict_scores_output, sample_rubric)
+
+
 def test_build_evaluation_prompt_contains_rubric_and_constraints(sample_rubric):
     prompt = _build_evaluation_prompt(
         submitted_answer="This is a test answer for UPSC Mains.",

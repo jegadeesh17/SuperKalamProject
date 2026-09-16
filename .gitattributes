@@ -1,0 +1,7 @@
+# This repo's tracked files are stored with LF line endings. Pin these two
+# files to LF on checkin/checkout regardless of platform/core.autocrlf, since
+# editing them on Windows was introducing CRLF/LF churn warnings in `git diff`
+# (see docs/SPEC.md hardening notes). Scoped narrowly rather than repo-wide so
+# other already-checked-out files are left untouched.
+app/models.py text eol=lf
+requirements.txt text eol=lf

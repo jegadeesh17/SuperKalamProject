@@ -4,7 +4,7 @@ Request/response models for API validation.
 """
 
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 # ─── Request Schemas ──────────────────────────────────────────
@@ -47,6 +47,43 @@ class ModelAnswerRequest(BaseModel):
         pattern="^(en|hi|ta)$",
         description="Language for the model answer: 'en', 'hi', or 'ta'.",
     )
+
+
+# ─── Agent Output Contracts ────────────────────────────────────
+
+class EvaluatorOutput(BaseModel):
+    """Schema for the Evaluator Agent's parsed LLM JSON output.
+
+    See `agents/evaluator.py::evaluate()` / `_validate_evaluation()` and
+    `docs/SPEC.md` §2.2 for the full contract. Rubric criteria are dynamic
+    (loaded per-topic from the `Rubric` table), so `scores` is validated as
+    an open per-criterion mapping rather than fixed fields; the caller is
+    still responsible for checking that every criterion required by the
+    active rubric is present in `scores` (not expressible as a static
+    Pydantic field, since the required key set varies per request).
+    """
+    scores: dict[str, float] = Field(
+        ...,
+        description="Per-criterion score (0-10), keyed by rubric criterion name.",
+    )
+    overall_score: float = Field(
+        ...,
+        ge=0,
+        le=10,
+        description="Weighted average of the per-criterion scores, 0-10.",
+    )
+    notes: str = Field(
+        ...,
+        description="2-3 sentence internal note for the Feedback Agent.",
+    )
+
+    @field_validator("scores")
+    @classmethod
+    def _scores_within_bounds(cls, value: dict[str, float]) -> dict[str, float]:
+        for name, score in value.items():
+            if not (0 <= score <= 10):
+                raise ValueError(f"Score for '{name}' is {score}, must be 0-10")
+        return value
 
 
 # ─── Response Schemas ─────────────────────────────────────────
