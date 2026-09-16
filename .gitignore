@@ -35,6 +35,11 @@ models/*
 # Logs
 *.log
 
+# Tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
 # Distribution
 dist/
 build/
