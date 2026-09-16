@@ -19,7 +19,9 @@ ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONPATH="/app" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PORT=8080
+    PORT=8080 \
+    HF_HOME="/app/.cache/huggingface" \
+    SENTENCE_TRANSFORMERS_HOME="/app/.cache/sentence_transformers"
 
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
@@ -35,7 +37,11 @@ COPY --chown=appuser:appgroup configs/ configs/
 COPY --chown=appuser:appgroup data/ data/
 COPY --chown=appuser:appgroup scripts/ scripts/
 
-RUN mkdir -p db chroma_db reports && chown -R appuser:appgroup /app
+# Pre-seed SQLite + ChromaDB and pre-cache the embedding model at build time, so
+# every Cloud Run instance boots with data already present (ephemeral filesystem).
+RUN mkdir -p db chroma_db reports "$HF_HOME" "$SENTENCE_TRANSFORMERS_HOME" && \
+    python data/ingest.py && \
+    chown -R appuser:appgroup /app
 
 USER appuser
 

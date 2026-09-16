@@ -15,11 +15,32 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 
 from app.config import settings
-from app.database import create_tables
+from app.database import create_tables, SessionLocal, PYQ
 from app.routes import evaluate, model_answer, topics, attempts
 
 # Create SQLite tables
 create_tables()
+
+
+def _ensure_data_seeded() -> None:
+    """Seed the database on startup if it is empty.
+
+    The image is pre-seeded at build time, but a dev environment or a mounted
+    volume can still start with an empty database — reingest so the API never
+    serves 404s for missing questions.
+    """
+    db = SessionLocal()
+    try:
+        if db.query(PYQ).count() == 0:
+            from data.ingest import ingest_data
+            ingest_data()
+    except Exception as e:
+        print(f"Warning: Automatic data ingestion failed: {e}")
+    finally:
+        db.close()
+
+
+_ensure_data_seeded()
 
 app = FastAPI(
     title=settings.APP_TITLE,

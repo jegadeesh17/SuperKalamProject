@@ -34,6 +34,12 @@ async def generate_feedback(
     Input:  scores, evaluator notes, question context, language code
     Output: plain text feedback string in the requested language
     """
+    if not settings.OPENROUTER_API_KEY:
+        raise ValueError(
+            "OPENROUTER_API_KEY is not configured on the server. "
+            "Set it as an environment variable on the Cloud Run service."
+        )
+
     language_name = settings.LANGUAGE_MAP.get(language, "English")
 
     system_prompt = FEEDBACK_SYSTEM_PROMPT_TEMPLATE.format(
@@ -90,6 +96,12 @@ async def translate_model_answer(
     """
     if language == "en":
         return model_answer
+
+    if not settings.OPENROUTER_API_KEY:
+        raise ValueError(
+            "OPENROUTER_API_KEY is not configured on the server. "
+            "Set it as an environment variable on the Cloud Run service."
+        )
 
     language_name = settings.LANGUAGE_MAP.get(language, "English")
 

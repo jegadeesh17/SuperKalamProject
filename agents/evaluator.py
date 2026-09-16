@@ -81,6 +81,12 @@ async def evaluate(
     Output: dict with scores, overall_score, notes
     Raises: ValueError on parse failure after retry
     """
+    if not settings.OPENROUTER_API_KEY:
+        raise ValueError(
+            "OPENROUTER_API_KEY is not configured on the server. "
+            "Set it as an environment variable on the Cloud Run service."
+        )
+
     user_prompt = _build_evaluation_prompt(
         submitted_answer, question_text, model_answer, rubric_criteria, word_limit, time_taken_seconds
     )
