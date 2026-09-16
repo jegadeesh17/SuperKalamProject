@@ -63,6 +63,9 @@ Write your mentor feedback in {language_name} ({language}). Use native script.""
         ],
         "temperature": 0.7,  # Higher temperature for natural, varied feedback
         "max_tokens": 600,
+        # gpt-oss is a reasoning model: keep hidden chain-of-thought from
+        # eating into the budget for the actual feedback text.
+        "reasoning_effort": "low",
     }
 
     headers = {
@@ -120,6 +123,7 @@ Return ONLY the translated text, no commentary."""
         ],
         "temperature": 0.3,
         "max_tokens": 1000,
+        "reasoning_effort": "low",
     }
 
     headers = {

@@ -99,6 +99,9 @@ async def evaluate(
         ],
         "temperature": 0.3,  # Low temperature for consistent scoring
         "max_tokens": 500,
+        # gpt-oss is a reasoning model: without this, hidden chain-of-thought
+        # can consume the whole max_tokens budget and truncate the JSON output.
+        "reasoning_effort": "low",
     }
 
     headers = {

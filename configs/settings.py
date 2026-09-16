@@ -39,8 +39,10 @@ class Settings(BaseSettings):
         description="API key for Groq / OpenRouter LLM gateway",
     )
     OPENROUTER_MODEL: str = Field(
-        default="llama-3.3-70b-versatile",
-        description="Default LLM model identifier",
+        default="openai/gpt-oss-120b",
+        description="Default LLM model identifier (verify against "
+        "https://console.groq.com/docs/models -- Groq periodically "
+        "retires models, which last broke this default in Sep 2026)",
     )
     OPENROUTER_BASE_URL: str = Field(
         default="https://api.groq.com/openai/v1/chat/completions",
