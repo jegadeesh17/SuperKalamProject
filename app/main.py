@@ -42,6 +42,7 @@ os.makedirs(static_dir, exist_ok=True)
 
 # Mount static files for the web UI
 app.mount("/ui", StaticFiles(directory=static_dir, html=True), name="static")
+app.mount("/app", StaticFiles(directory=static_dir, html=True), name="app")
 
 @app.get("/health", tags=["Health"])
 def health() -> dict:
@@ -56,4 +57,5 @@ def health() -> dict:
 @app.get("/", include_in_schema=False)
 async def root():
     """Redirect root to the UI."""
-    return RedirectResponse(url="/ui/")
+    return RedirectResponse(url="/app/")
+
