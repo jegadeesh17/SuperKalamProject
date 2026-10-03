@@ -44,3 +44,17 @@ models/*
 dist/
 build/
 *.egg-info/
+
+# Secrets and keys
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Virtual environment
+.venv/
+
+# Archived docs, local orchestration files and private notes (kept on disk, untracked)
+docs/archive/
+docs/orchestrate/
+pitch_strategy.md
