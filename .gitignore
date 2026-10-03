@@ -58,3 +58,14 @@ build/
 docs/archive/
 docs/orchestrate/
 pitch_strategy.md
+
+# Coverage, editor, packaging and local tool state
+.coverage
+htmlcov/
+.superpowers/
+.agents/
+.ipynb_checkpoints/
+node_modules/
+*.tsbuildinfo
+.claude/settings.local.json
+.impeccable/hook.cache.json
