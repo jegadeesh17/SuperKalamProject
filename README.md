@@ -7,7 +7,7 @@ Live demo: https://superkalam-api-242711953247.asia-south1.run.app/app
 ## Features
 
 - **Mock test generation**: the web UI fetches a random PYQ from the seeded database (60 questions across 5 topics) and runs a timed attempt. The API can also take any pasted UPSC question and match it to the closest known PYQ with ChromaDB semantic search (cosine similarity of at least 0.50).
-- **Rubric evaluation (Evaluator Agent)**: an LLM scores the answer from 0 to 10 per rubric criterion and returns strict JSON that is validated with a Pydantic model. The seeded rubric has four dimensions: coverage (0.40), structure (0.25), examples (0.20) and word limit adherence (0.15).
+- **Rubric evaluation (Evaluator Agent)**: an LLM scores the answer from 0 to 10 per rubric criterion and returns strict JSON that is validated with a Pydantic model. The seeded rubric has four dimensions: coverage (0.40), structure (0.25), examples (0.20) and word limit adherence (0.15). A question that matches no seeded PYQ uses a five-criterion default rubric instead (`DEFAULT_RUBRIC_WEIGHTS`, `agents/orchestrator.py:58`; see `docs/SPEC.md` §3.2).
 - **Localized mentorship (Feedback Agent)**: feedback is generated in English, Hindi or Tamil. The language is enforced in the prompt ("Respond ENTIRELY in ... native script"), not checked after generation.
 - **Model answer endpoint**: `POST /api/model-answer` returns the matched PYQ's model answer, translated for Hindi or Tamil. The web UI does not have a model-answer mode; it is API only.
 - **Rate-limit fallback**: on an HTTP 429 from the LLM, the evaluator returns mock scores of 6 for every criterion instead of failing. This is a per-request fallback, not a circuit breaker.
