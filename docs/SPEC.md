@@ -91,7 +91,7 @@ endpoint (`settings.OPENROUTER_BASE_URL`, default `openai/gpt-oss-120b` via
 `settings.OPENROUTER_MODEL`) with `temperature=0.3` and `reasoning_effort="low"` (the
 model is a reasoning model; without capping reasoning effort, hidden chain-of-thought can
 consume the entire `max_tokens=500` budget and truncate the JSON output — see
-`agents/evaluator.py:100-105`).
+`agents/evaluator.py:104-106`).
 
 **The rubric criteria are dynamic, not fixed.** They are loaded per-topic from the
 `Rubric` table (seeded from `data/seed_data.json`), so the evaluator's `scores` object is
@@ -149,7 +149,7 @@ rubric remains a manual check afterwards, because it depends on which rubric was
 for the request and cannot be expressed as a static Pydantic field).
 
 Markdown code fences are stripped defensively before parsing
-(`agents/evaluator.py:131-136`), since the system prompt asks the model not to emit them
+(`agents/evaluator.py:134-138`), since the system prompt asks the model not to emit them
 but reasoning models sometimes do anyway.
 
 ### 2.3 Feedback Agent (`agents/feedback.py`)
@@ -177,16 +177,20 @@ is currently no separate connect-timeout budget and no per-attempt backoff/jitte
 
 `agents/evaluator.py::evaluate()` retries **exactly once** if the first LLM response
 fails to parse as JSON or fails schema validation (`json.JSONDecodeError` or
-`ValueError`/`ValidationError`, see `agents/evaluator.py:138-174`):
+`ValueError`/`ValidationError`, see `agents/evaluator.py:144-176`):
 
 1. First attempt uses the normal `_build_evaluation_prompt()` output.
 2. On failure, the retry re-sends the **same** user prompt with an appended stricter
    instruction block (`"CRITICAL: Your previous response was not valid JSON. ..."`),
    and re-parses/re-validates the response.
-3. If the retry *also* fails to parse/validate, `evaluate()` raises
-   `ValueError("Evaluator LLM returned invalid JSON after retry: ...")`, which propagates
-   up through `agents/orchestrator.py` and is converted to an HTTP `422` by
-   `app/routes/evaluate.py` (its `except ValueError` branch).
+3. The retry's `json.loads(...)` and `_validate_evaluation(...)` calls sit inside the
+   `except` block and are not wrapped in a further `try`. If the retry *also* fails, the
+   raw `json.JSONDecodeError` or `ValueError` (`pydantic.ValidationError` is a `ValueError`
+   subclass) propagates up through `agents/orchestrator.py` and is converted to an HTTP
+   `422` by `app/routes/evaluate.py` (its `except ValueError` branch). The message
+   `"Evaluator LLM returned invalid JSON after retry: ..."` is raised only when `evaluate()`
+   is called with `retry=False` (`agents/evaluator.py:173-176`); the pipeline does not do
+   that, so that text is not returned to API clients.
 4. The retry call does **not** get 429-fallback handling — only the first attempt checks
    for a 429 (see §3.3); if the retry itself receives a non-2xx status,
    `response.raise_for_status()` raises `httpx.HTTPStatusError`, which is not caught by
@@ -200,7 +204,7 @@ fails to parse as JSON or fails schema validation (`json.JSONDecodeError` or
 
 Only the **first** Evaluator Agent call and `translate_model_answer` check for
 `response.status_code == 429` before calling `raise_for_status()`
-(`agents/evaluator.py:120-125`, `agents/feedback.py:142-144`). On a 429:
+(`agents/evaluator.py:122-127`, `agents/feedback.py:142-144`). On a 429:
 
 - **Evaluator**: returns a mock evaluation — every rubric criterion scored `6`,
   `overall_score: 6.0`, and `notes` prefixed `"[MOCK] API Rate Limit Exceeded (429)..."` —
@@ -232,9 +236,17 @@ All routes are mounted under `/api` except `/health` and static UI mounts. See
 | `GET /api/random-question`  | —                        | `{question_text, word_limit, year}` | 404 if the PYQ table is empty |
 | `POST /api/evaluate`        | `EvaluateRequest`        | `EvaluateResponse`       | Runs the full 3-agent pipeline; 422 on validation/evaluator-contract failure, 502 on other LLM/network failure |
 | `POST /api/model-answer`    | `ModelAnswerRequest`     | `ModelAnswerResponse`    | Retrieval + translation only; 422 if no PYQ match, 502 on translation failure |
-| `GET /api/topics`           | —                        | `list[TopicResponse]`    | |
-| `GET /api/attempts`         | —                        | `list[AttemptResponse]`  | Attempt history |
+| `GET /api/topics`           | —                        | `list[TopicResponse]`    | Topics with question counts |
+| `GET /api/topics/{topic_id}/questions` | —              | `list[QuestionResponse]` | 404 if the topic does not exist; newest year first |
+| `GET /api/questions/{question_id}` | —                  | `QuestionDetailResponse` | Includes model answer and key points; 404 if not found |
+| `GET /api/attempts`         | query: `topic_id`, `limit` (1-100, default 20) | `list[AttemptResponse]`  | Attempt history, most recent first |
+| `GET /api/attempts/{attempt_id}` | —                   | `AttemptResponse`        | 404 if not found |
 | `GET /health`               | —                        | `{status, service, version, database}` | Liveness/readiness probe target for the Dockerfile `HEALTHCHECK` |
+| `GET /app/`, `GET /ui/`     | —                        | Static web UI (`app/static/`) | Both mounts serve the same directory; `/app` is the route used on Cloud Run |
+| `GET /`                     | —                        | Redirect to `/app/`      | Excluded from the OpenAPI schema |
+
+The web UI calls only `/api/random-question` and `/api/evaluate` (`app/static/app.js`);
+it has no model-answer mode. `POST /api/model-answer` is reachable through the API only.
 
 ---
 
@@ -292,7 +304,7 @@ No other source of Pearson/Spearman/MAE numbers was found in `README.md`,
 | Failure | Where | Behavior | HTTP result |
 | --- | --- | --- | --- |
 | LLM call exceeds 60s | `evaluate()`, `generate_feedback()`, `translate_model_answer()` | `httpx.TimeoutException` raised, not caught locally | 502 (`evaluate.py` / `model_answer.py` generic `except Exception`) |
-| Evaluator returns malformed JSON, retry also fails | `evaluate()` | `ValueError("...invalid JSON after retry...")` | 422 |
+| Evaluator returns malformed JSON, retry also fails | `evaluate()` | Raw `json.JSONDecodeError` (a `ValueError` subclass) from the retry parse | 422 |
 | Evaluator returns JSON missing a required key / rubric criterion / out-of-bounds score, retry also fails | `evaluate()` via `_validate_evaluation()` / `EvaluatorOutput` | `ValueError` / `pydantic.ValidationError` (subclass of `ValueError`) | 422 |
 | Evaluator hits 429 on first attempt | `evaluate()` | Mock `[MOCK] ...429...` scores returned, pipeline continues | 200 (degraded content, not surfaced as an error) |
 | Evaluator hits 429 on the *retry* attempt | `evaluate()` | Not special-cased — `raise_for_status()` raises `httpx.HTTPStatusError` | 502 |
@@ -317,7 +329,6 @@ No other source of Pearson/Spearman/MAE numbers was found in `README.md`,
   this model instead of hand-rolled dict/key checks; the per-request rubric-criteria
   subset check (which criteria must be present) remains a manual check afterwards since
   it depends on the caller-supplied rubric, not a fixed schema.
-- **`requirements.txt`**: removed the unused `slowapi==0.1.9` dependency (see
-  `docs/SPEC.md` deployment notes / hardening report for the rationale — it was never
-  imported anywhere in the codebase and was not even installed in the environment this
-  hardening pass was validated against).
+- **`requirements.txt`**: removed the unused `slowapi==0.1.9` dependency (commit
+  `c5ff69d`). It was never imported anywhere in the codebase and was not installed in the
+  environment this hardening pass was validated against.
