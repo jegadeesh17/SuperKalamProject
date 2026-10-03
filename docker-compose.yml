@@ -12,7 +12,7 @@ services:
     environment:
       - PORT=8003
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
-      - OPENROUTER_MODEL=${OPENROUTER_MODEL:-llama-3.3-70b-versatile}
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL:-openai/gpt-oss-120b}
       - DATABASE_URL=sqlite:////app/db/superkalam.db
     volumes:
       - kalam-data:/app/db
