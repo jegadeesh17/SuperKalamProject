@@ -7,7 +7,7 @@ Live demo: https://superkalam-api-242711953247.asia-south1.run.app/app
 ## Features
 
 - **Mock test generation**: the web UI fetches a random PYQ from the seeded database (60 questions across 5 topics) and runs a timed attempt. The API can also take any pasted UPSC question and match it to the closest known PYQ with ChromaDB semantic search (cosine similarity of at least 0.50).
-- **Rubric evaluation (Evaluator Agent)**: an LLM scores the answer from 0 to 10 per rubric criterion and returns strict JSON that is validated with a Pydantic model. The seeded rubric has four dimensions: coverage (0.40), structure (0.25), examples (0.20) and word limit adherence (0.15). A question that matches no seeded PYQ uses a five-criterion default rubric instead (`DEFAULT_RUBRIC_WEIGHTS`, `agents/orchestrator.py:58`; see `docs/SPEC.md` §3.2).
+- **Rubric evaluation (Evaluator Agent)**: an LLM scores the answer from 0 to 10 per rubric criterion and returns strict JSON that is validated with a Pydantic model. The seeded rubric has four dimensions: coverage (0.40), structure (0.25), examples (0.20) and word limit adherence (0.15). A question that matches no seeded PYQ uses a five-criterion default rubric instead (`DEFAULT_RUBRIC_WEIGHTS`, `agents/orchestrator.py:58`; see `docs/SPEC.md` §2.2).
 - **Localized mentorship (Feedback Agent)**: feedback is generated in English, Hindi or Tamil. The language is enforced in the prompt ("Respond ENTIRELY in ... native script"), not checked after generation.
 - **Model answer endpoint**: `POST /api/model-answer` returns the matched PYQ's model answer, translated for Hindi or Tamil. The web UI does not have a model-answer mode; it is API only.
 - **Rate-limit fallback**: on an HTTP 429 from the LLM, the evaluator returns mock scores of 6 for every criterion instead of failing. This is a per-request fallback, not a circuit breaker.
@@ -128,7 +128,7 @@ A three-agent pipeline chained by `agents/orchestrator.py`:
 - `evaluator.py`: prompts the LLM with the rubric and model answer and validates the JSON it returns. It retries once with a stricter prompt and strips markdown fences.
 - `feedback.py`: turns the evaluator's notes into localized mentor feedback.
 
-Attempts are stored in SQLite (SQLAlchemy); ChromaDB holds the PYQ embeddings. LLM calls use a flat 60-second timeout. The service is deployed to Google Cloud Run by `.github/workflows/deploy.yml` on every push to `main` or `master`, except pushes that change only `docs/**` or `*.md` files. The container installs CPU-only PyTorch because Cloud Run has no GPU; the image is expected to drop from about 3.4 GB to well under 1 GB (not yet measured). Artifact Registry keeps only the 2 newest images per service (the current image and one rollback); this setting lives in Google Cloud, not in this repo. The workflow runs no tests. Details are in [docs/SPEC.md](docs/SPEC.md).
+Attempts are stored in SQLite (SQLAlchemy); ChromaDB holds the PYQ embeddings. LLM calls use a flat 60-second timeout. The service is deployed to Google Cloud Run by `.github/workflows/deploy.yml` on every push to `main` or `master`, except pushes that change only `docs/**` or `*.md` files. The container installs CPU-only PyTorch because Cloud Run has no GPU; the image is about 0.60 GB. Artifact Registry keeps only the 2 newest images per service (the current image and one rollback); this setting lives in Google Cloud, not in this repo. The workflow runs no tests. Details are in [docs/SPEC.md](docs/SPEC.md).
 
 ## Evaluation
 

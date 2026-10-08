@@ -18,7 +18,7 @@ Entries are built from the repository's own commit subjects. No version has been
 
 ### Changed
 
-- The container installs CPU-only PyTorch instead of the CUDA build from PyPI, so the image is expected to drop from about 3.4 GB to well under 1 GB (not yet measured) (`8484626`).
+- The container installs CPU-only PyTorch instead of the CUDA build from PyPI, so the image is about 0.60 GB (`8484626`).
 - The deploy workflow skips pushes that change only `docs/**` or `*.md` files (`8484626`).
 - Artifact Registry keeps only the 2 newest images per service (the current image and one rollback). This setting lives in Google Cloud, not in this repo.
 - Documentation refresh: standard README section order, `docs/README.md` index, this changelog, `docs/DECISIONS.md`, MIT `LICENSE`, commented `.env.example`, corrected `docs/SPEC.md` (retry behaviour, full route table, dangling reference) and wider `.gitignore`. No code changed.
