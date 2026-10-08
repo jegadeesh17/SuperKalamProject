@@ -12,7 +12,7 @@ Rationale here is taken only from commit messages, code comments and the code it
 **Decision:** Default `OPENROUTER_MODEL` to `openai/gpt-oss-120b` and `OPENROUTER_BASE_URL` to `https://api.groq.com/openai/v1/chat/completions`. Send `"reasoning_effort": "low"` on all three LLM calls, because the model reasons before answering and can spend the whole `max_tokens` budget on hidden reasoning, which truncated the JSON output (`finish_reason: "length"`).
 **Alternatives rejected:** None recorded.
 **Consequences:** The setting and key are still named `OPENROUTER_API_KEY` / `OPENROUTER_MODEL`, although the default endpoint is Groq. `deploy.yml` passes `secrets.GROQ_API_KEY || secrets.OPENROUTER_API_KEY` as `OPENROUTER_API_KEY`. Groq retires models periodically (the setting's description says it last broke this default in Sep 2026), and `docker-compose.yml` still defaults to the retired llama model.
-**Evidence:** commit `db271f3`; `configs/settings.py:41-52`; `agents/evaluator.py:104-106`; `.github/workflows/deploy.yml:49`.
+**Evidence:** commit `db271f3`; `configs/settings.py:41-52`; `agents/evaluator.py:104-106`; `.github/workflows/deploy.yml:52`.
 
 ---
 

@@ -128,7 +128,7 @@ A three-agent pipeline chained by `agents/orchestrator.py`:
 - `evaluator.py`: prompts the LLM with the rubric and model answer and validates the JSON it returns. It retries once with a stricter prompt and strips markdown fences.
 - `feedback.py`: turns the evaluator's notes into localized mentor feedback.
 
-Attempts are stored in SQLite (SQLAlchemy); ChromaDB holds the PYQ embeddings. LLM calls use a flat 60-second timeout. The service is deployed to Google Cloud Run by `.github/workflows/deploy.yml` on every push to `main` or `master`. The workflow runs no tests. Details are in [docs/SPEC.md](docs/SPEC.md).
+Attempts are stored in SQLite (SQLAlchemy); ChromaDB holds the PYQ embeddings. LLM calls use a flat 60-second timeout. The service is deployed to Google Cloud Run by `.github/workflows/deploy.yml` on every push to `main` or `master`, except pushes that change only `docs/**` or `*.md` files. The container installs CPU-only PyTorch because Cloud Run has no GPU; the image is expected to drop from about 3.4 GB to well under 1 GB (not yet measured). Artifact Registry keeps only the 2 newest images per service (the current image and one rollback); this setting lives in Google Cloud, not in this repo. The workflow runs no tests. Details are in [docs/SPEC.md](docs/SPEC.md).
 
 ## Evaluation
 
@@ -138,7 +138,7 @@ Attempts are stored in SQLite (SQLAlchemy); ChromaDB holds the PYQ embeddings. L
 
 - The calibration report scores a heuristic against synthetic labels and makes no LLM calls. Its header says "40 PYQs / 120 passes", but the seed data has 60 PYQs. Its B-versus-C margin of +1.99 is marked as passing a 2.0 target. The report is generated and was not edited.
 - On HTTP 429 the evaluator returns mock scores of 6 (HTTP 200) and the attempt is saved. The retry call, the feedback call and other non-2xx responses return HTTP 502.
-- The deploy workflow runs no tests and redeploys on any push to `main` or `master`.
+- The deploy workflow runs no tests and redeploys on any push to `main` or `master` that changes code. Pushes that change only `docs/**` or `*.md` files do not deploy.
 - Retrieval is dense-only, with no lexical matching, and the 0.50 threshold is fixed in code.
 - The web UI has no model-answer mode; `POST /api/model-answer` is API only.
 - The key and model settings keep their `OPENROUTER_*` names although the default endpoint is Groq.
