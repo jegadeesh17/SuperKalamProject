@@ -3,6 +3,9 @@ name: Deploy SuperKalam to Cloud Run
 on:
   push:
     branches: [ "main", "master" ]
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
   workflow_dispatch:
 
 env:

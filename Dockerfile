@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends build-essential
 COPY requirements.txt ./
 RUN python -m venv /opt/venv && \
     /opt/venv/bin/pip install --no-cache-dir --upgrade pip && \
+    /opt/venv/bin/pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu && \
     /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
 
 # Stage 2: Minimal hardened runtime image
@@ -41,7 +42,7 @@ COPY --chown=appuser:appgroup scripts/ scripts/
 # every Cloud Run instance boots with data already present (ephemeral filesystem).
 RUN mkdir -p db chroma_db reports "$HF_HOME" "$SENTENCE_TRANSFORMERS_HOME" && \
     python data/ingest.py && \
-    chown -R appuser:appgroup /app
+    chown -R appuser:appgroup db chroma_db reports "$HF_HOME" "$SENTENCE_TRANSFORMERS_HOME"
 
 USER appuser
 
