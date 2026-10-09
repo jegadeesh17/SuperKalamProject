@@ -83,6 +83,7 @@ API routes (all under `/api` except `/health` and the UI):
 ## Running tests
 
 ```bash
+pip install -r requirements-dev.txt                   # pytest + pytest-asyncio
 .venv/Scripts/python -m pytest -q                     # full suite
 .venv/Scripts/python -m pytest tests/test_agents.py -q  # one file
 ```
@@ -103,7 +104,7 @@ Settings are read from the environment or `.env` by `configs/settings.py`. See `
 | `DATABASE_URL` | `sqlite:///<project root>/db/superkalam.db` | SQLAlchemy URL |
 | `CHROMA_DIR` | `<project root>/chroma_db` | ChromaDB persistent directory |
 | `CHROMA_COLLECTION` | `superkalam_pyqs` | ChromaDB collection name |
-| `EMBEDDING_MODEL` | `all-MiniLM-L6-v2` | Sentence-transformers embedding model |
+| `EMBEDDING_MODEL` | `all-MiniLM-L6-v2` | Unused: embeddings come from Chroma's built-in ONNX all-MiniLM-L6-v2 |
 
 ## Project structure
 

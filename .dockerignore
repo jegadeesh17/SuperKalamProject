@@ -7,3 +7,17 @@ venv
 .env
 db/*.db
 reports/
+.venv
+.env.*
+chroma_db
+db
+models
+notebooks
+tests
+docs
+.github
+*.md
+docker-compose.yml
+.agents
+.superpowers
+app/app.py

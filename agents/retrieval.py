@@ -20,9 +20,7 @@ def _get_collection():
     global _chroma_client, _collection
     if _collection is None:
         _chroma_client = chromadb.PersistentClient(path=str(settings.CHROMA_DIR))
-        ef = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name=settings.EMBEDDING_MODEL
-        )
+        ef = embedding_functions.DefaultEmbeddingFunction()  # ONNX all-MiniLM-L6-v2 (384-dim)
         _collection = _chroma_client.get_or_create_collection(
             name=settings.CHROMA_COLLECTION,
             embedding_function=ef,

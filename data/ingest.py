@@ -103,9 +103,7 @@ def ingest_data():
     except Exception:
         pass
 
-    ef = embedding_functions.SentenceTransformerEmbeddingFunction(
-        model_name=settings.EMBEDDING_MODEL
-    )
+    ef = embedding_functions.DefaultEmbeddingFunction()  # ONNX all-MiniLM-L6-v2 (384-dim)
     
     collection = chroma_client.create_collection(
         name=settings.CHROMA_COLLECTION,
