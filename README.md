@@ -151,6 +151,10 @@ Attempts are stored in SQLite (SQLAlchemy); ChromaDB holds the PYQ embeddings. L
 - [Architecture decisions](docs/DECISIONS.md)
 - [Changelog](CHANGELOG.md)
 
+## How this was built
+
+Designed and built by jegadeesh17 with Claude Code. I reviewed and tested all code.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
