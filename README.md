@@ -2,7 +2,7 @@
 
 SuperKalam is a multi-lingual, agentic AI mock test platform for UPSC Mains answer writing. It gives students timed mock tests using Previous Year Questions (PYQs), scores their answers against a rubric with an LLM, and returns mentor-style feedback in English, Hindi, or Tamil.
 
-Live demo: https://superkalam-api-242711953247.asia-south1.run.app/app
+Live demo: not currently deployed (Cloud Run service removed Nov 2026; redeploy with `.github/workflows/deploy.yml`)
 
 ## Features
 
@@ -129,7 +129,7 @@ A three-agent pipeline chained by `agents/orchestrator.py`:
 - `evaluator.py`: prompts the LLM with the rubric and model answer and validates the JSON it returns. It retries once with a stricter prompt and strips markdown fences.
 - `feedback.py`: turns the evaluator's notes into localized mentor feedback.
 
-Attempts are stored in SQLite (SQLAlchemy); ChromaDB holds the PYQ embeddings. LLM calls use a flat 60-second timeout. The service is deployed to Google Cloud Run by `.github/workflows/deploy.yml` on every push to `main` or `master`, except pushes that change only `docs/**` or `*.md` files. The container installs CPU-only PyTorch because Cloud Run has no GPU; the image is about 0.60 GB. Artifact Registry keeps only the 2 newest images per service (the current image and one rollback); this setting lives in Google Cloud, not in this repo. The workflow runs no tests. Details are in [docs/SPEC.md](docs/SPEC.md).
+Attempts are stored in SQLite (SQLAlchemy); ChromaDB holds the PYQ embeddings. LLM calls use a flat 60-second timeout. `.github/workflows/deploy.yml` deploys the service to Google Cloud Run on every push to `main` or `master`, except pushes that change only `docs/**` or `*.md` files. The workflow is currently disabled in GitHub Actions and the service is not deployed; re-enable the workflow to redeploy. The container installs CPU-only PyTorch because Cloud Run has no GPU; the image is about 0.60 GB. Artifact Registry keeps only the 2 newest images per service (the current image and one rollback); this setting lives in Google Cloud, not in this repo. The workflow runs no tests. Details are in [docs/SPEC.md](docs/SPEC.md).
 
 ## Evaluation
 
